@@ -11,4 +11,6 @@ Note that this tool writes over all previous data in the configured Spreadsheet,
 
 ## Usage
 
-Simply run `python planmill2sheets.py` and you're done.
+Setup a new app that uses Google Sheets API and download the credentials JSON file into `credentials.json`.
+
+Then run `python planmill2sheets.py` and you're done. You might need to authorize yourself to Google once before.
