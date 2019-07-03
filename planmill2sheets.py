@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# PlanMill JSON to Google Spreadsheet CSV tool
-#
-# This tool fetches a JSON response from the PlanMill Opportunities API, converts
-# it to a CSV file, and uploads it to a configured Google Spreadsheet.  Note that
-# this tool writes over all previous data in the configured Spreadsheet, so some
-# caution should be taken when running this.
-
 # setup python-getenv
 import os
 from os.path import join, dirname
@@ -47,11 +40,6 @@ token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIEN
 # Fetch Opportunities from PlanMill API
 json_response = oauth.get(PLANMILL_API_URL)
 
-
-# These would be our requirements with conda, if not installed
-# !conda config --add channels conda-forge
-# !conda install google-api-python-client google-auth-httplib2 google-auth-oauthlib
-
 # Let's import our required libraries
 import pandas as pd
 
@@ -59,7 +47,8 @@ import pandas as pd
 # Let's read our JSON response into a Pandas DataFrame...
 df = pd.read_json(json_response.content)
 
-# ..and then convert that to a more-easy-to-import-elsewhere CSV file. `index=False` removes the by-default first column of indexes.
+# ..and then convert that to a more-easy-to-import-elsewhere CSV file.
+# `index=False` removes the by-default first column of indexes.
 df.to_csv(CSV_FILE_PATH, index=False, encoding='utf-8')
 
 
