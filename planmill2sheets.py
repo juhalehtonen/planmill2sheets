@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-
 # If modifying these scopes, delete the file token.pickle
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
@@ -32,26 +31,26 @@ PLANMILL_GRANT_TYPE = 'Authorization code'
 # Let's authenticate with PlanMill API and fetch the latest Opportunities data
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
-client = BackendApplicationClient(client_id=PLANMILL_CLIENT_ID)
-oauth = OAuth2Session(client=client)
-token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIENT_ID, client_secret=PLANMILL_CLIENT_SECRET)
-# print(token)
-
-# Fetch Opportunities from PlanMill API
-json_response = oauth.get(PLANMILL_API_URL)
-
-# Let's import our required libraries
 import pandas as pd
 
-# Let's read our JSON response into a Pandas DataFrame...
-df = pd.read_json(json_response.content)
+# Get CSV data return it yes
+def get_planmill_data():
+    client = BackendApplicationClient(client_id=PLANMILL_CLIENT_ID)
+    oauth = OAuth2Session(client=client)
+    token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIENT_ID, client_secret=PLANMILL_CLIENT_SECRET)
 
-# ..and then convert that to a more-easy-to-import-elsewhere CSV file.
-# `index=False` removes the by-default first column of indexes.
-csv_string = df.to_csv(None, index=False, encoding='utf-8')
+    # Fetch Opportunities from PlanMill API
+    json_response = oauth.get(PLANMILL_API_URL)
 
-print(csv_string)
+    # Let's read our JSON response into a Pandas DataFrame...
+    df = pd.read_json(json_response.content)
 
+    # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
+    # `index=False` removes the by-default first column of indexes.
+    csv_string = df.to_csv(None, index=False, encoding='utf-8')
+
+    print(csv_string)
+    return csv_string
 
 # Import requirements for using Google Spreadsheet API V4
 import pickle
@@ -114,6 +113,9 @@ def main():
 
     # Build the API service object
     service = build('sheets', 'v4', credentials=creds)
+
+    # Get CSV data from PlanMill
+    csv_string = get_planmill_data()
 
     # Build body for request
     body = push_csv_to_gsheet(
