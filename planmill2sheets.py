@@ -19,7 +19,7 @@ SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 PLANMILL_CLIENT_ID = os.getenv('PLANMILL_CLIENT_ID')
 PLANMILL_CLIENT_SECRET = os.getenv('PLANMILL_CLIENT_SECRET')
 PLANMILL_REDIRECT_URI = os.getenv('PLANMILL_REDIRECT_URI')
-PLANMILL_API_URL = os.getenv('PLANMILL_API_URL')
+PLANMILL_API_ENDPOINT = os.getenv('PLANMILL_API_ENDPOINT')
 PLANMILL_AUTH_URL = os.getenv('PLANMILL_AUTH_URL')
 PLANMILL_TOKEN_URL = os.getenv('PLANMILL_TOKEN_URL')
 PLANMILL_GRANT_TYPE = 'Authorization code'
@@ -31,13 +31,13 @@ from requests_oauthlib import OAuth2Session
 import pandas as pd
 
 # Get CSV data return it yes
-def get_planmill_data():
+def get_planmill_data(api_path):
     client = BackendApplicationClient(client_id=PLANMILL_CLIENT_ID)
     oauth = OAuth2Session(client=client)
     token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIENT_ID, client_secret=PLANMILL_CLIENT_SECRET)
 
     # Fetch Opportunities from PlanMill API
-    json_response = oauth.get(PLANMILL_API_URL + 'opportunities?rowcount=3000')
+    json_response = oauth.get(PLANMILL_API_ENDPOINT + api_path)
 
     # Let's read our JSON response into a Pandas DataFrame...
     df = pd.read_json(json_response.content)
@@ -109,7 +109,7 @@ def main():
     service = build('sheets', 'v4', credentials=creds)
 
     # Get CSV data from PlanMill
-    csv_data = get_planmill_data()
+    csv_data = get_planmill_data(api_path='opportunities?rowcount=3000')
 
     # Build body for request
     body = push_csv_to_gsheet(
