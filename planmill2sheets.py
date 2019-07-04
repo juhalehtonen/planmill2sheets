@@ -43,13 +43,14 @@ json_response = oauth.get(PLANMILL_API_URL)
 # Let's import our required libraries
 import pandas as pd
 
-
 # Let's read our JSON response into a Pandas DataFrame...
 df = pd.read_json(json_response.content)
 
 # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
 # `index=False` removes the by-default first column of indexes.
-df.to_csv(CSV_FILE_PATH, index=False, encoding='utf-8')
+csv_string = df.to_csv(None, index=False, encoding='utf-8')
+
+print(csv_string)
 
 
 # Import requirements for using Google Spreadsheet API V4
@@ -67,8 +68,9 @@ def find_sheet_id(service):
     return sheets_with_properties[0]['properties']['sheetId']
 
 def push_csv_to_gsheet(csv_path, sheet_id):
-    with open(csv_path, 'r') as csv_file:
-        csvContents = csv_file.read()
+    csvContents = csv_path
+    #with open(csv_path, 'r') as csv_file:
+    #    csvContents = csv_file.read()
     body = {
         'requests': [{
             'pasteData': {
@@ -115,7 +117,7 @@ def main():
 
     # Build body for request
     body = push_csv_to_gsheet(
-        csv_path=CSV_FILE_PATH,
+        csv_path=csv_string,
         sheet_id=find_sheet_id(service)
     )
 
