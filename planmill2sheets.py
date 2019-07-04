@@ -12,9 +12,6 @@ load_dotenv(dotenv_path)
 # If modifying these scopes, delete the file token.pickle
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-# Path to the CSV file uploaded to Sheets
-CSV_FILE_PATH = os.getenv('CSV_FILE_PATH')
-
 # Google Sheets Spreadsheet ID where data gets written
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 
@@ -40,7 +37,7 @@ def get_planmill_data():
     token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIENT_ID, client_secret=PLANMILL_CLIENT_SECRET)
 
     # Fetch Opportunities from PlanMill API
-    json_response = oauth.get(PLANMILL_API_URL)
+    json_response = oauth.get(PLANMILL_API_URL + 'opportunities?rowcount=3000')
 
     # Let's read our JSON response into a Pandas DataFrame...
     df = pd.read_json(json_response.content)
@@ -66,10 +63,7 @@ def find_sheet_id(service):
     sheets_with_properties = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID, fields='sheets.properties') .execute().get('sheets')
     return sheets_with_properties[0]['properties']['sheetId']
 
-def push_csv_to_gsheet(csv_path, sheet_id):
-    csvContents = csv_path
-    #with open(csv_path, 'r') as csv_file:
-    #    csvContents = csv_file.read()
+def push_csv_to_gsheet(csv_data, sheet_id):
     body = {
         'requests': [{
             'pasteData': {
@@ -78,7 +72,7 @@ def push_csv_to_gsheet(csv_path, sheet_id):
                     "rowIndex": "0",  # adapt this if you need different positioning
                     "columnIndex": "0", # adapt this if you need different positioning
                 },
-                "data": csvContents,
+                "data": csv_data,
                 "type": 'PASTE_NORMAL',
                 "delimiter": ',',
             }
@@ -115,11 +109,11 @@ def main():
     service = build('sheets', 'v4', credentials=creds)
 
     # Get CSV data from PlanMill
-    csv_string = get_planmill_data()
+    csv_data = get_planmill_data()
 
     # Build body for request
     body = push_csv_to_gsheet(
-        csv_path=csv_string,
+        csv_data=csv_data,
         sheet_id=find_sheet_id(service)
     )
 
