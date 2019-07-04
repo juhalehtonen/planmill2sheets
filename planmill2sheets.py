@@ -46,7 +46,7 @@ def get_planmill_data(api_path):
     # `index=False` removes the by-default first column of indexes.
     csv_string = df.to_csv(None, index=False, encoding='utf-8')
 
-    print(csv_string)
+    #print(csv_string)
     return csv_string
 
 # Import requirements for using Google Spreadsheet API V4
@@ -58,10 +58,11 @@ from google.auth.transport.requests import Request
 
 
 # Helper functions to operate the Google Sheets API
-def find_sheet_id(service):
+def find_sheet_id(service, index):
+    print('index is {}'.format(index))
     # ugly, but works
     sheets_with_properties = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID, fields='sheets.properties') .execute().get('sheets')
-    return sheets_with_properties[0]['properties']['sheetId']
+    return sheets_with_properties[index]['properties']['sheetId']
 
 def push_csv_to_gsheet(csv_data, sheet_id):
     body = {
@@ -109,19 +110,33 @@ def main():
     service = build('sheets', 'v4', credentials=creds)
 
     # Get CSV data from PlanMill
-    csv_data = get_planmill_data(api_path='opportunities?rowcount=3000')
+    csv_data_opportunities = get_planmill_data(api_path='opportunities?rowcount=3000')
+    csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
 
-    # Build body for request
-    body = push_csv_to_gsheet(
-        csv_data=csv_data,
-        sheet_id=find_sheet_id(service)
-    )
+    # Create an ordered list of PlanMill data. The order is important, because
+    # it will correspond to the sheets in the spreadsheet.
+    csv_data = [csv_data_opportunities, csv_data_projects]
 
-    # Finally send the request to Google Sheets
-    request = service.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body)
-    response = request.execute()
-    print(response)
-    return response
+    # Loop over all desired API responses
+    for num, data in enumerate(csv_data, start=0):
+        #print("num is: ")
+        #print(num)
+        # Get the sheet id
+        sheet_id = find_sheet_id(service, num)
+
+        # Build body for request
+        body = push_csv_to_gsheet(
+            csv_data=data,
+            sheet_id=sheet_id
+        )
+
+        #print(sheet_id)
+
+        # Finally send the request to Google Sheets
+        request = service.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body)
+        response = request.execute()
+        #print(response)
+        print('done with {}'.format(num))
 
 if __name__ == '__main__':
     main()
