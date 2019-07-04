@@ -64,7 +64,7 @@ def find_sheet_id(service, index):
     sheets_with_properties = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID, fields='sheets.properties') .execute().get('sheets')
     return sheets_with_properties[index]['properties']['sheetId']
 
-def push_csv_to_gsheet(csv_data, sheet_id):
+def build_gsheet_body(csv_data, sheet_id):
     body = {
         'requests': [{
             'pasteData': {
@@ -125,7 +125,7 @@ def main():
         sheet_id = find_sheet_id(service, num)
 
         # Build body for request
-        body = push_csv_to_gsheet(
+        body = build_gsheet_body(
             csv_data=data,
             sheet_id=sheet_id
         )
