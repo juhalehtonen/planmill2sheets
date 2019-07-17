@@ -15,4 +15,4 @@ Setup a new app that uses Google Sheets API and download the credentials JSON fi
 
 Use OAuth and set the scopes to allow read/write access to spreadsheets.
 
-Then run `python planmill2sheets.py` and you're done. You might need to authorize yourself to Google once before.
+Then run `pipenv run python3 planmill2sheets.py` and you're done. You need to authorize yourself to Google once before.
