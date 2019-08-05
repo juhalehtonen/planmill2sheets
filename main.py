@@ -76,7 +76,7 @@ def get_planmill_data(api_path):
     json_response = oauth.get(PLANMILL_API_ENDPOINT + api_path)
 
     # Special treatment for nested Reports
-    if 'reports' in api_path:
+    if 'Actual' in api_path:
         print('processing nested reports..')
         print(json_response.content, flush=True)
         df = pd.read_json(json_response.content)
@@ -158,6 +158,7 @@ def main():
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
     csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
+    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person')
     csv_data_officevibe = get_officevibe_data()
 
     # Create an ordered list of PlanMill data. The order is important, because
@@ -167,6 +168,7 @@ def main():
         csv_data_projects,
         csv_data_salesorders,
         csv_data_revenue,
+        csv_data_utilization,
         csv_data_officevibe
     ]
 
