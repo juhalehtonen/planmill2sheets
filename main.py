@@ -75,6 +75,14 @@ def get_planmill_data(api_path):
     # Fetch Opportunities from PlanMill API
     json_response = oauth.get(PLANMILL_API_ENDPOINT + api_path)
 
+    # Special treatment for nested Reports
+    if 'reports' in api_path:
+        print('processing nested reports..')
+        print(json_response.content, flush=True)
+        df = pd.read_json(json_response.content)
+        csv_string = df.to_csv(None, index=False, encoding='utf-8')
+        return csv_string
+
     # Let's read our JSON response into a Pandas DataFrame...
     df = pd.read_json(json_response.content)
 
@@ -82,7 +90,6 @@ def get_planmill_data(api_path):
     # `index=False` removes the by-default first column of indexes.
     csv_string = df.to_csv(None, index=False, encoding='utf-8')
 
-    #print(csv_string)
     return csv_string
 
 # Import requirements for using Google Spreadsheet API V4
@@ -91,7 +98,6 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-
 
 # Helper functions to operate the Google Sheets API
 def find_sheet_id(service, index):
@@ -147,15 +153,22 @@ def main():
     # Build the API service object
     service = build('sheets', 'v4', credentials=creds)
 
-    # Get CSV data from PlanMill
+    # Get CSV data from PlanMill and OfficeVibe
     csv_data_opportunities = get_planmill_data(api_path='opportunities?rowcount=3000')
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
-    csv_data_revenues = get_planmill_data(api_path='reports/Revenues+summary+by+month?param1=3&param2=2019&param3=-100')
+    csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
+    csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
     csv_data_officevibe = get_officevibe_data()
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
-    csv_data = [csv_data_opportunities, csv_data_projects, csv_data_revenues, csv_data_officevibe]
+    csv_data = [
+        csv_data_opportunities,
+        csv_data_projects,
+        csv_data_salesorders,
+        csv_data_revenue,
+        csv_data_officevibe
+    ]
 
     # Loop over all desired API responses
     for num, data in enumerate(csv_data, start=0):
