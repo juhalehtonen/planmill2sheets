@@ -66,22 +66,31 @@ def get_officevibe_data():
 
     return csv_string
 
+import io
+
 # Get CSV data return it yes
 def get_planmill_data(api_path):
     client = BackendApplicationClient(client_id=PLANMILL_CLIENT_ID)
     oauth = OAuth2Session(client=client)
     token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIENT_ID, client_secret=PLANMILL_CLIENT_SECRET)
 
-    # Fetch Opportunities from PlanMill API
-    json_response = oauth.get(PLANMILL_API_ENDPOINT + api_path)
 
     # Special treatment for nested Reports
     if 'Actual' in api_path:
+        # Fetch Opportunities from PlanMill API
+        headers = {'Accept': 'text/csv'}
+        csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
+
         print('processing nested reports..')
-        print(json_response.content, flush=True)
-        df = pd.read_json(json_response.content)
+        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', sep=",") # index_col ?
+        # df = pd.read_csv(csv_response.content)
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
+
+
+    # Fetch Opportunities from PlanMill API
+    headers = {'Accept': 'application/json'}
+    json_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
     # Let's read our JSON response into a Pandas DataFrame...
     df = pd.read_json(json_response.content)
@@ -158,7 +167,7 @@ def main():
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
     csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
-    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person')
+    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=level1&delim=%2C')
     csv_data_officevibe = get_officevibe_data()
 
     # Create an ordered list of PlanMill data. The order is important, because
