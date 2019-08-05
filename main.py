@@ -82,7 +82,7 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing nested reports..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', sep=",") # index_col ?
+        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', sep=",", names=["Person", "Period", "Actual capacity", "Reported", "Billable", "Non-billable", "Actual utilization", "Absences"])
         # df = pd.read_csv(csv_response.content)
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
