@@ -33,6 +33,8 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 import pandas as pd
 import json
+from pandas.io.json import json_normalize
+from flatten_json import flatten
 
 def get_officevibe_data():
     endpoint = "https://app.officevibe.com/api/v2/engagement"
@@ -43,12 +45,26 @@ def get_officevibe_data():
             "2019-02-01",
             "2019-03-01",
             "2019-04-01",
-            "2019-05-01"
+            "2019-05-01",
+            "2019-06-01",
+            "2019-07-01",
+            "2019-08-01"
         ]
     }
     headers = {"Authorization": "Bearer " + OFFICEVIBE_API_KEY}
-    print(requests.get(endpoint, params=params, headers=headers).json())
-    return
+    json_response = requests.get(endpoint, params=params, headers=headers).json()
+
+    # Get data
+    d = json_response['data']['weeklyReports']
+
+    # Normalize json
+    jn = json_normalize(data=d, record_path='metricsValues', errors='ignore', meta=['date'])
+
+    # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
+    # `index=False` removes the by-default first column of indexes.
+    csv_string = jn.to_csv(None, index=False, encoding='utf-8')
+
+    return csv_string
 
 # Get CSV data return it yes
 def get_planmill_data(api_path):
@@ -133,10 +149,11 @@ def main():
     csv_data_opportunities = get_planmill_data(api_path='opportunities?rowcount=3000')
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
     csv_data_revenues = get_planmill_data(api_path='reports/Revenues+summary+by+month?param1=3&param2=2019&param3=-100')
+    csv_data_officevibe = get_officevibe_data()
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
-    csv_data = [csv_data_opportunities, csv_data_projects, csv_data_revenues]
+    csv_data = [csv_data_opportunities, csv_data_projects, csv_data_revenues, csv_data_officevibe]
 
     get_officevibe_data()
 

@@ -15,6 +15,7 @@ google-auth = "*"
 google-auth-httplib2 = "*"
 google-auth-oauthlib = "*"
 python-dotenv = "*"
+flatten_json = "*"
 
 [requires]
 python_version = "3.7"
