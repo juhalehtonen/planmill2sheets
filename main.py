@@ -117,12 +117,8 @@ def build_gsheet_body(csv_data, sheet_id):
     }
     return body
 
-
-# Run Google Sheets API authentication and push CSV file contents to Spreadsheet
-def main():
-    """Shows basic usage of the Sheets API.
-    Prints values from a sample spreadsheet.
-    """
+# Build google credentials
+def build_google_creds():
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -142,6 +138,12 @@ def main():
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
+    return creds
+
+# Run Google Sheets API authentication and push CSV file contents to Spreadsheet
+def main():
+    creds = build_google_creds()
+
     # Build the API service object
     service = build('sheets', 'v4', credentials=creds)
 
@@ -154,8 +156,6 @@ def main():
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
     csv_data = [csv_data_opportunities, csv_data_projects, csv_data_revenues, csv_data_officevibe]
-
-    get_officevibe_data()
 
     # Loop over all desired API responses
     for num, data in enumerate(csv_data, start=0):
