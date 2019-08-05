@@ -24,11 +24,31 @@ PLANMILL_AUTH_URL = os.getenv('PLANMILL_AUTH_URL')
 PLANMILL_TOKEN_URL = os.getenv('PLANMILL_TOKEN_URL')
 PLANMILL_GRANT_TYPE = 'Authorization code'
 
+# OfficeVibe configuration
+OFFICEVIBE_API_KEY = os.getenv('OFFICEVIBE_API_KEY')
 
 # Let's authenticate with PlanMill API and fetch the latest Opportunities data
+import requests
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 import pandas as pd
+import json
+
+def get_officevibe_data():
+    endpoint = "https://app.officevibe.com/api/v2/engagement"
+    params = 	{
+        "groupNames": [],
+        "dates": [
+            "2019-01-01",
+            "2019-02-01",
+            "2019-03-01",
+            "2019-04-01",
+            "2019-05-01"
+        ]
+    }
+    headers = {"Authorization": "Bearer " + OFFICEVIBE_API_KEY}
+    print(requests.get(endpoint, params=params, headers=headers).json())
+    return
 
 # Get CSV data return it yes
 def get_planmill_data(api_path):
@@ -112,10 +132,13 @@ def main():
     # Get CSV data from PlanMill
     csv_data_opportunities = get_planmill_data(api_path='opportunities?rowcount=3000')
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
+    csv_data_revenues = get_planmill_data(api_path='reports/Revenues+summary+by+month?param1=3&param2=2019&param3=-100')
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
-    csv_data = [csv_data_opportunities, csv_data_projects]
+    csv_data = [csv_data_opportunities, csv_data_projects, csv_data_revenues]
+
+    get_officevibe_data()
 
     # Loop over all desired API responses
     for num, data in enumerate(csv_data, start=0):
