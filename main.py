@@ -106,6 +106,15 @@ def get_planmill_data(api_path):
         )
         df['Period'] = df['Period'].dt.strftime('%Y%m')
 
+        # There has to be a better way..
+        df['Actual capacity'] = df['Actual capacity'].str.replace(',','.')
+        df['Reported'] = df['Reported'].str.replace(',','.')
+        df['Billable'] = df['Billable'].str.replace(',','.')
+        df['Non-billable'] = df['Non-billable'].str.replace(',','.')
+        df['Actual utilization'] = df['Actual utilization'].str.replace(',','.')
+        df['Actual utilization'] = df['Actual utilization'].str.replace(' %','')
+        df['Absences'] = df['Absences'].str.replace(',','.')
+
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
 
@@ -148,6 +157,14 @@ def get_planmill_data(api_path):
         )
         df['Start'] = df['Start'].dt.strftime('%Y%m%d')
         df['Finish'] = df['Finish'].dt.strftime('%Y%m%d')
+
+        # There has to be a better way..
+        df['Balance'] = df['Balance'].str.replace(',','.')
+        df['Last month'] = df['Last month'].str.replace(',','.')
+        df['Balance adjust'] = df['Balance adjust'].str.replace(',','.')
+        df['Capacity'] = df['Capacity'].str.replace(',','.')
+        df['Normal time'] = df['Normal time'].str.replace(',','.')
+        df['Overtime & on-call'] = df['Overtime & on-call'].str.replace(',','.')
 
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
