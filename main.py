@@ -121,11 +121,12 @@ def get_planmill_data(api_path):
             encoding='utf8',
             decimal=".",
             sep="\t",
-            parse_dates=["Date", "Invoice date"],
+            parse_dates=["Date", "Invoice date", "Year/Month"],
             names=["Year/Month", "Date", "Customer", "Project", "Revenue item", "Sales order / item", "Product", "Project manager", "Billing rule", "à price", "Forecast", "Actual", "Invoiced", "Invoice number", "Invoice date"]
         )
         df['Date'] = df['Date'].dt.strftime('%Y%m%d')
         df['Invoice date'] = df['Invoice date'].dt.strftime('%Y%m%d')
+        df['Year/Month'] = df['Year/Month'].dt.strftime('%Y%m')
 
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
@@ -232,7 +233,7 @@ def main():
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
     csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
     csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed')
-    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3=2019-01-01T00%3A00%3A00.000%2B0200&exportType=detailed')
+    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3=2019-08-06T00%3A00%3A00.000%2B0200&exportType=detailed')
     csv_data_officevibe = get_officevibe_data()
     csv_data_freshdesk = get_freshdesk_data()
 
