@@ -167,7 +167,7 @@ def main():
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
     csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
-    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=level1&delim=%2C')
+    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed&delim=%2C')
     csv_data_officevibe = get_officevibe_data()
 
     # Create an ordered list of PlanMill data. The order is important, because
