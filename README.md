@@ -6,6 +6,8 @@ Note that this tool writes over all previous data in the configured Spreadsheet,
 
 ## Setup
 
+Note that you must have OpenSSL 1.1 or 1.2. 1.0 does not work.
+
 1. Copy `.env.example` to `.env` and fill in the values.
 2. Install Python dependencies with `pipenv`
 

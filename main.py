@@ -27,6 +27,10 @@ PLANMILL_GRANT_TYPE = 'Authorization code'
 # OfficeVibe configuration
 OFFICEVIBE_API_KEY = os.getenv('OFFICEVIBE_API_KEY')
 
+# Freshdesk configuration
+FRESHDESK_API_KEY = os.getenv('FRESHDESK_API_KEY')
+FRESHDESK_DOMAIN = os.getenv('FRESHDESK_DOMAIN')
+
 # Let's authenticate with PlanMill API and fetch the latest Opportunities data
 import requests
 from oauthlib.oauth2 import BackendApplicationClient
@@ -68,12 +72,22 @@ def get_officevibe_data():
 
 import io
 
+# Get FreshDesk data
+# TODO: Get proper access rights
+def get_freshdesk_data():
+    api_key = FRESHDESK_API_KEY
+    domain = FRESHDESK_DOMAIN
+    password = "x"
+    r = requests.get("https://"+ domain +".freshdesk.com/api/v2/surveys/satisfaction_ratings", auth = (api_key, password))
+    print(r, flush=True)
+    print(r.content)
+    return r.content
+
 # Get CSV data return it yes
 def get_planmill_data(api_path):
     client = BackendApplicationClient(client_id=PLANMILL_CLIENT_ID)
     oauth = OAuth2Session(client=client)
     token = oauth.fetch_token(token_url=PLANMILL_TOKEN_URL, client_id=PLANMILL_CLIENT_ID, client_secret=PLANMILL_CLIENT_SECRET)
-
 
     # Special treatment for nested Reports
     if 'Actual' in api_path:
@@ -82,8 +96,7 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing actual utilization report..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', sep=",", names=["Person", "Period", "Actual capacity", "Reported", "Billable", "Non-billable", "Actual utilization", "Absences"])
-        # df = pd.read_csv(csv_response.content)
+        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', decimal=".", sep="\t", names=["Person", "Period", "Actual capacity", "Reported", "Billable", "Non-billable", "Actual utilization", "Absences"])
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
 
@@ -95,8 +108,7 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing revenue report..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', sep=",", names=["Year/Month", "Date", "Customer", "Project", "Revenue item", "Sales order / item", "Product", "Project manager", "Billing rule", "à price", "Forecast", "Actual", "Invoiced", "Invoice number", "Invoice date"])
-        # df = pd.read_csv(csv_response.content)
+        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', decimal=".", sep="\t", names=["Year/Month", "Date", "Customer", "Project", "Revenue item", "Sales order / item", "Product", "Project manager", "Billing rule", "à price", "Forecast", "Actual", "Invoiced", "Invoice number", "Invoice date"])
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
 
@@ -107,8 +119,7 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing time balance report..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', sep=",", names=["Team", "Person", "Start", "Finish", "Last month", "Balance", "Balance adjust", "Balance maximum", "Capacity", "Normal time", "Overtime & on-call"])
-        # df = pd.read_csv(csv_response.content)
+        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', decimal=".", sep="\t", names=["Team", "Person", "Start", "Finish", "Last month", "Balance", "Balance adjust", "Balance maximum", "Capacity", "Normal time", "Overtime & on-call"])
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
 
@@ -183,6 +194,7 @@ def build_google_creds():
 def main():
     creds = build_google_creds()
 
+
     # Build the API service object
     service = build('sheets', 'v4', credentials=creds)
 
@@ -190,10 +202,11 @@ def main():
     csv_data_opportunities = get_planmill_data(api_path='opportunities?rowcount=3000')
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
-    csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200&delim=%2C')
-    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed&delim=%2C')
-    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3=2019-01-01T00%3A00%3A00.000%2B0200&exportType=detailed&delim=%2C')
+    csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
+    csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed')
+    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3=2019-01-01T00%3A00%3A00.000%2B0200&exportType=detailed')
     csv_data_officevibe = get_officevibe_data()
+    csv_data_freshdesk = get_freshdesk_data()
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
