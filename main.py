@@ -96,10 +96,18 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing actual utilization report..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', decimal=".", sep="\t", names=["Person", "Period", "Actual capacity", "Reported", "Billable", "Non-billable", "Actual utilization", "Absences"])
+        df = pd.read_csv(
+            io.BytesIO(csv_response.content),
+            encoding='utf8',
+            decimal=".",
+            sep="\t",
+            parse_dates=["Period"],
+            names=["Person", "Period", "Actual capacity", "Reported", "Billable", "Non-billable", "Actual utilization", "Absences"]
+        )
+        df['Period'] = df['Period'].dt.strftime('%Y%m')
+
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
-
 
     # Special treatment for nested Reports
     if 'Revenues' in api_path:
@@ -108,7 +116,17 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing revenue report..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', decimal=".", sep="\t", names=["Year/Month", "Date", "Customer", "Project", "Revenue item", "Sales order / item", "Product", "Project manager", "Billing rule", "à price", "Forecast", "Actual", "Invoiced", "Invoice number", "Invoice date"])
+        df = pd.read_csv(
+            io.BytesIO(csv_response.content),
+            encoding='utf8',
+            decimal=".",
+            sep="\t",
+            parse_dates=["Date", "Invoice date"],
+            names=["Year/Month", "Date", "Customer", "Project", "Revenue item", "Sales order / item", "Product", "Project manager", "Billing rule", "à price", "Forecast", "Actual", "Invoiced", "Invoice number", "Invoice date"]
+        )
+        df['Date'] = df['Date'].dt.strftime('%Y%m%d')
+        df['Invoice date'] = df['Invoice date'].dt.strftime('%Y%m%d')
+
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
 
@@ -119,7 +137,17 @@ def get_planmill_data(api_path):
         csv_response = oauth.get(PLANMILL_API_ENDPOINT + api_path, headers=headers)
 
         print('processing time balance report..')
-        df = pd.read_csv(io.BytesIO(csv_response.content), encoding='utf8', decimal=".", sep="\t", names=["Team", "Person", "Start", "Finish", "Last month", "Balance", "Balance adjust", "Balance maximum", "Capacity", "Normal time", "Overtime & on-call"])
+        df = pd.read_csv(
+            io.BytesIO(csv_response.content),
+            encoding='utf8',
+            decimal=".",
+            sep="\t",
+            parse_dates=["Start", "Finish"],
+            names=["Team", "Person", "Start", "Finish", "Last month", "Balance", "Balance adjust", "Balance maximum", "Capacity", "Normal time", "Overtime & on-call"]
+        )
+        df['Start'] = df['Start'].dt.strftime('%Y%m%d')
+        df['Finish'] = df['Finish'].dt.strftime('%Y%m%d')
+
         csv_string = df.to_csv(None, index=False, encoding='utf-8')
         return csv_string
 
