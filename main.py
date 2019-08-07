@@ -104,7 +104,7 @@ def get_planmill_data(api_path):
             parse_dates=["Period"],
             names=["Person", "Period", "Actual capacity", "Reported", "Billable", "Non-billable", "Actual utilization", "Absences"]
         )
-        df['Period'] = df['Period'].dt.strftime('%Y%m')
+        df['Period'] = df['Period'].dt.strftime('%Y%m%d')
 
         # There has to be a better way..
         df['Actual capacity'] = df['Actual capacity'].str.replace(',','.')
@@ -239,7 +239,6 @@ def build_google_creds():
 # Run Google Sheets API authentication and push CSV file contents to Spreadsheet
 def main():
     creds = build_google_creds()
-
 
     # Build the API service object
     service = build('sheets', 'v4', credentials=creds)
