@@ -40,20 +40,20 @@ import json
 from pandas.io.json import json_normalize
 from flatten_json import flatten
 
+# To generate date strings
+import datetime
+
 def get_officevibe_data():
     endpoint = "https://app.officevibe.com/api/v2/engagement"
+    # Generate a list of dates for this year
+    year_today = datetime.date.today().strftime("%Y")
+    date_time_index = pd.date_range(start='1/1/'+year_today, periods=12, freq='M')
+    dti_to_datetimes = date_time_index.to_pydatetime()
+    dt_strings = list(map(lambda x: x.strftime("%Y-%m-%d"), dti_to_datetimes))
+
     params = 	{
         "groupNames": [],
-        "dates": [
-            "2019-01-01",
-            "2019-02-01",
-            "2019-03-01",
-            "2019-04-01",
-            "2019-05-01",
-            "2019-06-01",
-            "2019-07-01",
-            "2019-08-01"
-        ]
+        "dates": dt_strings
     }
     headers = {"Authorization": "Bearer " + OFFICEVIBE_API_KEY}
     json_response = requests.get(endpoint, params=params, headers=headers).json()
@@ -236,6 +236,12 @@ def build_google_creds():
 
     return creds
 
+# Helper to get last day of month. any_day is is a datetime.date
+# e.g. last_day_of_month(datetime.date(2012, 13, 1))
+def last_day_of_month(any_day):
+    next_month = any_day.replace(day=28) + datetime.timedelta(days=4)  # this will never fail
+    return next_month - datetime.timedelta(days=next_month.day)
+
 # Run Google Sheets API authentication and push CSV file contents to Spreadsheet
 def main():
     creds = build_google_creds()
@@ -243,13 +249,19 @@ def main():
     # Build the API service object
     service = build('sheets', 'v4', credentials=creds)
 
+    # Date strings for various query parameters
+    date_today = datetime.date.today()
+    datestring_last_of_this_month = last_day_of_month(date_today).strftime("%Y-%m-%d")
+    datestring_today = date_today.strftime("%Y-%m-%d")
+    datestring_this_year = date_today.strftime("%Y")
+
     # Get CSV data from PlanMill and OfficeVibe
     csv_data_opportunities = get_planmill_data(api_path='opportunities?rowcount=3000')
     csv_data_projects = get_planmill_data(api_path='projects?rowcount=3000')
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
-    csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4=2019-01-01T00%3A00%3A00.000%2B0200&param5=2019-08-30T00%3A00%3A00.000%2B0200')
+    csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param4='+datestring_this_year+'-01-01T00%3A00%3A00.000%2B0200&param5='+datestring_last_of_this_month+'T00%3A00%3A00.000%2B0200')
     csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed')
-    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3=2019-08-06T00%3A00%3A00.000%2B0200&exportType=detailed')
+    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3='+datestring_today+'T00%3A00%3A00.000%2B0200&exportType=detailed')
     csv_data_officevibe = get_officevibe_data()
     csv_data_freshdesk = get_freshdesk_data()
 
@@ -267,8 +279,6 @@ def main():
 
     # Loop over all desired API responses
     for num, data in enumerate(csv_data, start=0):
-        #print("num is: ")
-        #print(num)
         # Get the sheet id
         sheet_id = find_sheet_id(service, num)
 
@@ -283,7 +293,6 @@ def main():
         # Finally send the request to Google Sheets
         request = service.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body)
         response = request.execute()
-        #print(response)
         print('done with {}'.format(num))
 
 if __name__ == '__main__':
