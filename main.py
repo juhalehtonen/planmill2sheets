@@ -73,15 +73,20 @@ def get_officevibe_data():
 import io
 
 # Get FreshDesk data
-# TODO: Get proper access rights
-def get_freshdesk_data():
+def get_freshdesk_data(api_path):
     api_key = FRESHDESK_API_KEY
     domain = FRESHDESK_DOMAIN
     password = "x"
-    r = requests.get("https://"+ domain +".freshdesk.com/api/v2/surveys/satisfaction_ratings", auth = (api_key, password))
-    print(r, flush=True)
-    print(r.content)
-    return r.content
+    json_response = requests.get("https://"+ domain +".freshdesk.com/api/v2/"+api_path, auth = (api_key, password))
+
+    # Let's read our JSON response into a Pandas DataFrame...
+    df = pd.read_json(json_response.content)
+
+    # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
+    # `index=False` removes the by-default first column of indexes.
+    csv_string = df.to_csv(None, index=False, encoding='utf-8')
+
+    return csv_string
 
 # Get CSV data return it yes
 def get_planmill_data(api_path):
@@ -263,7 +268,7 @@ def main():
     csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed&rowcount=3000')
     csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3='+datestring_today+'T00%3A00%3A00.000%2B0200&exportType=detailed&rowcount=3000')
     csv_data_officevibe = get_officevibe_data()
-    csv_data_freshdesk = get_freshdesk_data()
+    csv_data_freshdesk = get_freshdesk_data("tickets")
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
@@ -274,7 +279,8 @@ def main():
         csv_data_revenue,
         csv_data_utilization,
         csv_data_timebalance,
-        csv_data_officevibe
+        csv_data_officevibe,
+        csv_data_freshdesk
     ]
 
     # Loop over all desired API responses
