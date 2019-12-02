@@ -84,16 +84,36 @@ def get_freshdesk_data(api_path):
 
     # Check if we have a link for next page of content.
     # If yes, then make a request to the new URL and keep going
+    # TODO: Recursion pls :D
     if 'url' in json_response.links.get('next'):
         json_response2 = requests.get(json_response.links.get('next').get('url'), auth = (api_key, password))
         df2 = pd.read_json(json_response2.content)
         df = df.append(df2, ignore_index=True)
+
+    # Create a new column to dataframe
+    df['agent_responded_at']=None
+    df['first_responded_at']=None
+    df['resolved_at']=None
+    df['closed_at']=None
+    # Loop through dataframe rows and add agent respond time to each
+    for index, row in df.iterrows():
+        set_stats_row_value(df, index, row, 'agent_responded_at')
+        set_stats_row_value(df, index, row, 'first_responded_at')
+        set_stats_row_value(df, index, row, 'resolved_at')
+        set_stats_row_value(df, index, row, 'closed_at')
+
+    # Drop stats after using them
+    df.drop('stats', axis=1, inplace=True)
 
     # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
     # `index=False` removes the by-default first column of indexes.
     csv_string = df.to_csv(None, index=False, encoding='utf-8')
 
     return csv_string
+
+# Helper to set FreshDesk things lol
+def set_stats_row_value(df, index, row, key):
+    df.set_value(index, key, row['stats'].get(key))
 
 # Get CSV data return it yes
 def get_planmill_data(api_path):
