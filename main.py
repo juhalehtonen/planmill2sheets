@@ -82,6 +82,13 @@ def get_freshdesk_data(api_path):
     # Let's read our JSON response into a Pandas DataFrame...
     df = pd.read_json(json_response.content)
 
+    # Check if we have a link for next page of content.
+    # If yes, then make a request to the new URL and keep going
+    if 'url' in json_response.links.get('next'):
+        json_response2 = requests.get(json_response.links.get('next').get('url'), auth = (api_key, password))
+        df2 = pd.read_json(json_response2.content)
+        df = df.append(df2, ignore_index=True)
+
     # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
     # `index=False` removes the by-default first column of indexes.
     csv_string = df.to_csv(None, index=False, encoding='utf-8')
@@ -268,7 +275,7 @@ def main():
     csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed&rowcount=3000')
     csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3='+datestring_today+'T00%3A00%3A00.000%2B0200&exportType=detailed&rowcount=3000')
     csv_data_officevibe = get_officevibe_data()
-    csv_data_freshdesk = get_freshdesk_data("tickets?per_page=100")
+    csv_data_freshdesk = get_freshdesk_data("tickets?per_page=100&include=stats")
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
