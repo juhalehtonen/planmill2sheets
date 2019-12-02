@@ -268,7 +268,7 @@ def main():
     csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed&rowcount=3000')
     csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3='+datestring_today+'T00%3A00%3A00.000%2B0200&exportType=detailed&rowcount=3000')
     csv_data_officevibe = get_officevibe_data()
-    csv_data_freshdesk = get_freshdesk_data("tickets")
+    csv_data_freshdesk = get_freshdesk_data("tickets?per_page=100")
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
