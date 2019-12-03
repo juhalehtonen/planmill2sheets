@@ -100,12 +100,7 @@ def get_freshdesk_data(api_path):
     # Set to datetime columns and remove timezone information
     df['closed_at'] = pd.to_datetime(df['closed_at'], format='%d%b%Y:%H:%M:%S')
     df['created_at'] = pd.to_datetime(df['created_at'], format='%d%b%Y:%H:%M:%S')
-    # df['closed_at'].dt.tz_localize('UTC')
     df['created_at'] = df['created_at'].dt.tz_localize(None)
-    # df['closed_at'].dt.tz_convert(None)
-    # df['created_at'].dt.tz_convert(None)
-    # df['created_at'].dt.normalize()
-    # df['closed_at'].dt.normalize()
 
     # Loop through dataframe rows and add agent respond time to each
     for index, row in df.iterrows():
@@ -118,18 +113,11 @@ def get_freshdesk_data(api_path):
         # Update open_to_close_hours for each row, if applicable
         print(row['closed_at'])
         if row.loc['closed_at'] is not None:
-            # df['B'] = pd.to_datetime(df['B'])
-            print(row.loc['created_at'])
-            print(row.loc['closed_at'])
-            print( row.loc['closed_at'] - row.loc['created_at'] )
-
-            lol = (((pd.to_datetime(row.loc['closed_at']) -
+            hdifference = (((pd.to_datetime(row.loc['closed_at']) -
                             pd.to_datetime(row.loc['created_at']))
                                 .total_seconds() / 60) / 60)
 
-            print(lol)
-
-            df.set_value(index, 'open_to_close_hours', lol)
+            df.set_value(index, 'open_to_close_hours', hdifference)
 
 
 
