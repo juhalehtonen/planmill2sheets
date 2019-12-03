@@ -95,12 +95,34 @@ def get_freshdesk_data(api_path):
     df['first_responded_at']=None
     df['resolved_at']=None
     df['closed_at']=None
+    df['open_to_close_days']=None
+
+    # Set to datetime columns and remove timezone information
+    df['closed_at'] = pd.to_datetime(df['closed_at'], format='%d%b%Y:%H:%M:%S')
+    df['created_at'] = pd.to_datetime(df['created_at'], format='%d%b%Y:%H:%M:%S')
+    # df['closed_at'].dt.tz_localize('UTC')
+    df['created_at'] = df['created_at'].dt.tz_localize(None)
+    # df['closed_at'].dt.tz_convert(None)
+    # df['created_at'].dt.tz_convert(None)
+    # df['created_at'].dt.normalize()
+    # df['closed_at'].dt.normalize()
+
     # Loop through dataframe rows and add agent respond time to each
     for index, row in df.iterrows():
         set_stats_row_value(df, index, row, 'agent_responded_at')
         set_stats_row_value(df, index, row, 'first_responded_at')
         set_stats_row_value(df, index, row, 'resolved_at')
         set_stats_row_value(df, index, row, 'closed_at')
+
+    for index, row in df.iterrows():
+        # Update open_to_close_days for each row, if applicable
+        print(row['closed_at'])
+        if row.loc['closed_at'] is not None:
+            # df['B'] = pd.to_datetime(df['B'])
+            print(row.loc['created_at'])
+            print(row.loc['closed_at'])
+            print( row.loc['closed_at'] - row.loc['created_at'] )
+            df.set_value(index, 'open_to_close_days', row.loc['closed_at'] - row.loc['created_at'])
 
     # Drop stats after using them
     df.drop('stats', axis=1, inplace=True)
