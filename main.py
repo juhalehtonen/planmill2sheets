@@ -95,7 +95,7 @@ def get_freshdesk_data(api_path):
     df['first_responded_at']=None
     df['resolved_at']=None
     df['closed_at']=None
-    df['open_to_close_days']=None
+    df['open_to_close_hours']=None
 
     # Set to datetime columns and remove timezone information
     df['closed_at'] = pd.to_datetime(df['closed_at'], format='%d%b%Y:%H:%M:%S')
@@ -115,14 +115,23 @@ def get_freshdesk_data(api_path):
         set_stats_row_value(df, index, row, 'closed_at')
 
     for index, row in df.iterrows():
-        # Update open_to_close_days for each row, if applicable
+        # Update open_to_close_hours for each row, if applicable
         print(row['closed_at'])
         if row.loc['closed_at'] is not None:
             # df['B'] = pd.to_datetime(df['B'])
             print(row.loc['created_at'])
             print(row.loc['closed_at'])
             print( row.loc['closed_at'] - row.loc['created_at'] )
-            df.set_value(index, 'open_to_close_days', row.loc['closed_at'] - row.loc['created_at'])
+
+            lol = (((pd.to_datetime(row.loc['closed_at']) -
+                            pd.to_datetime(row.loc['created_at']))
+                                .total_seconds() / 60) / 60)
+
+            print(lol)
+
+            df.set_value(index, 'open_to_close_hours', lol)
+
+
 
     # Drop stats after using them
     df.drop('stats', axis=1, inplace=True)
