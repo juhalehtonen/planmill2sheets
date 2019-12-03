@@ -102,21 +102,20 @@ def get_freshdesk_data(api_path):
     df['created_at'] = pd.to_datetime(df['created_at'], format='%d%b%Y:%H:%M:%S')
     df['created_at'] = df['created_at'].dt.tz_localize(None)
 
-    # Loop through dataframe rows and add agent respond time to each
+    # Loop through dataframe rows and add times from stats to each
     for index, row in df.iterrows():
         set_stats_row_value(df, index, row, 'agent_responded_at')
         set_stats_row_value(df, index, row, 'first_responded_at')
         set_stats_row_value(df, index, row, 'resolved_at')
         set_stats_row_value(df, index, row, 'closed_at')
 
+    # Update open_to_close_hours for each row, if applicable
     for index, row in df.iterrows():
-        # Update open_to_close_hours for each row, if applicable
         print(row['closed_at'])
         if row.loc['closed_at'] is not None:
             hdifference = (((pd.to_datetime(row.loc['closed_at']) -
                             pd.to_datetime(row.loc['created_at']))
                                 .total_seconds() / 60) / 60)
-
             df.set_value(index, 'open_to_close_hours', hdifference)
 
 
