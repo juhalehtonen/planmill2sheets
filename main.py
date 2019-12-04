@@ -95,10 +95,14 @@ def get_freshdesk_data(api_path):
     df['first_responded_at']=None
     df['resolved_at']=None
     df['closed_at']=None
-    df['open_to_close_hours']=None
+    df['open_to_resolved_hours']=None
+    df['open_to_response_hours']=None
 
     # Set to datetime columns and remove timezone information
+    df['first_responded_at'] = pd.to_datetime(df['first_responded_at'], format='%d%b%Y:%H:%M:%S')
+    df['agent_responded_at'] = pd.to_datetime(df['agent_responded_at'], format='%d%b%Y:%H:%M:%S')
     df['closed_at'] = pd.to_datetime(df['closed_at'], format='%d%b%Y:%H:%M:%S')
+    df['resolved_at'] = pd.to_datetime(df['resolved_at'], format='%d%b%Y:%H:%M:%S')
     df['created_at'] = pd.to_datetime(df['created_at'], format='%d%b%Y:%H:%M:%S')
     df['created_at'] = df['created_at'].dt.tz_localize(None)
 
@@ -111,17 +115,22 @@ def get_freshdesk_data(api_path):
 
     # Update open_to_close_hours for each row, if applicable
     for index, row in df.iterrows():
-        print(row['closed_at'])
-        if row.loc['closed_at'] is not None:
-            hdifference = (((pd.to_datetime(row.loc['closed_at']) -
+        if row.loc['resolved_at'] is not None:
+            hdifference = (((pd.to_datetime(row.loc['resolved_at']) -
                             pd.to_datetime(row.loc['created_at']))
                                 .total_seconds() / 60) / 60)
-            df.set_value(index, 'open_to_close_hours', hdifference)
+            df.set_value(index, 'open_to_resolved_hours', hdifference)
 
-
+    # Update open_to_response_hours for each row, if applicable
+    for index, row in df.iterrows():
+        if row.loc['first_responded_at'] is not None:
+            hdifference = (((pd.to_datetime(row.loc['first_responded_at']) -
+                            pd.to_datetime(row.loc['created_at']))
+                                .total_seconds() / 60) / 60)
+            df.set_value(index, 'open_to_response_hours', hdifference)
 
     # Drop stats after using them
-    df.drop('stats', axis=1, inplace=True)
+    # df.drop('stats', axis=1, inplace=True)
 
     # ..and then convert that to a more-easy-to-import-elsewhere CSV file.
     # `index=False` removes the by-default first column of indexes.
