@@ -320,9 +320,9 @@ def main():
     csv_data_salesorders = get_planmill_data(api_path='salesorders?rowcount=3000')
     csv_data_revenue = get_planmill_data(api_path='reports/Revenues%20summary%20by%20month?param1=-1&param2=-1&param3='+datestring_this_year+'&param4='+datestring_this_year+'-01-01T00%3A00%3A00.000%2B0200&param5='+datestring_this_year+'-12-31T00%3A00%3A00.000%2B0200&param6=-1&param7=-1&param8=-1&param9=-1&param10=-1&param11=-1&param12=-1&param13=-1&rowcount=3000')
     csv_data_utilization = get_planmill_data(api_path='reports/Actual%20billable%20utilization%20rate%20analysis%20by%20person?param1=23&param3=-1&exportType=detailed&rowcount=3000')
-    csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3='+datestring_today+'T00%3A00%3A00.000%2B0200&exportType=detailed&rowcount=3000')
-    csv_data_officevibe = get_officevibe_data()
-    csv_data_freshdesk = get_freshdesk_data("tickets?per_page=100&include=stats")
+    # csv_data_timebalance = get_planmill_data(api_path='reports/Time%20balance%20by%20person?param3='+datestring_today+'T00%3A00%3A00.000%2B0200&exportType=detailed&rowcount=3000')
+    # csv_data_officevibe = get_officevibe_data()
+    # csv_data_freshdesk = get_freshdesk_data("tickets?per_page=100&include=stats")
 
     # Create an ordered list of PlanMill data. The order is important, because
     # it will correspond to the sheets in the spreadsheet.
@@ -332,9 +332,9 @@ def main():
         csv_data_salesorders,
         csv_data_revenue,
         csv_data_utilization,
-        csv_data_timebalance,
-        csv_data_officevibe,
-        csv_data_freshdesk
+        # csv_data_timebalance,
+        # csv_data_officevibe,
+        # csv_data_freshdesk
     ]
 
     # Loop over all desired API responses
